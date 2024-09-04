@@ -4,17 +4,16 @@
 @implementation InAppReviewPlugin
 
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
-    
     FlutterMethodChannel* channel = [FlutterMethodChannel methodChannelWithName:@"dev.britannio.in_app_review" binaryMessenger:[registrar messenger]];
-    
+
     InAppReviewPlugin* instance = [[InAppReviewPlugin alloc] init];
     [registrar addMethodCallDelegate:instance channel:channel];
 }
 
 - (void)handleMethodCall:(FlutterMethodCall *)call result:(FlutterResult)result {
-    
+
     [self logMessage:@"handle" details:call.method];
-    
+
     if ([call.method isEqual:@"requestReview"]) {
         [self requestReview:result];
     } else if ([call.method isEqual:@"isAvailable"]) {
@@ -45,14 +44,14 @@
 }
 
 - (UIWindowScene *) findActiveScene  API_AVAILABLE(ios(13.0)){
-    for (UIWindowScene *scene in UIApplication.sharedApplication.connectedScenes) {
-        
-        if (scene.activationState == UISceneActivationStateForegroundActive) {
-            return scene;
+    for (UIScene *scene in UIApplication.sharedApplication.connectedScenes) {
+        if ([scene isKindOfClass:[UIWindowScene class]] &&
+            scene.activationState == UISceneActivationStateForegroundActive) {
+          return (UIWindowScene *)scene;
         }
-        
+
     }
-    
+
     return nil;
 }
 
@@ -67,23 +66,23 @@
 }
 
 - (void) openStoreListingWithStoreId:(NSString *)storeId result:(FlutterResult)result {
-    
+
     if (!storeId) {
         result([FlutterError errorWithCode:@"no-store-id"
                                    message:@"Your store id must be passed as the method channel's argument"
                                    details:nil]);
         return;
     }
-    
+
     NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"https://apps.apple.com/app/id%@?action=write-review", storeId]];
-    
+
     if (!url) {
         result([FlutterError errorWithCode:@"url-construct-fail"
                                    message:@"Failed to construct url"
                                    details:nil]);
         return;
     }
-        
+
     UIApplication *app = [UIApplication sharedApplication];
     if (@available(iOS 10.0, *)) {
         [app openURL:url options:@{} completionHandler:nil];
